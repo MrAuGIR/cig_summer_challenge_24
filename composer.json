@@ -1,0 +1,16 @@
+{
+    "name": "mraugir/cig_summer_challenge_24",
+    "description": "summer challenge 2023",
+    "authors": [
+        {
+            "name": "aurelien",
+            "email": "contact@aureliengirard.fr"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Tests\\": "Tests/"
+        }
+    }
+}
