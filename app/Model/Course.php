@@ -36,16 +36,15 @@ class Course
         $position = $player->getPosition();
 
         if (isset($this->parcours[$position + 1])) {
-            switch($this->parcours[$position + 1])
-            {
-                case ".":
-                    return "LEFT";
-                    break;
-                case "#":
-                    return "UP";
-                    break;
-                default:
-                    return "LEFT";
+            $lines = $this->getLine($position);
+
+            // c'est dégueulasse !
+            if ($lines <= 1) {
+                return "UP";
+            } elseif ($lines <= 3) {
+                return "DOWN";
+            } else {
+                return "RIGHT";
             }
         }
         return "LEFT";
@@ -55,5 +54,18 @@ class Course
     {
         $this->parcours = [];
         $this->players = [];
+    }
+
+    private function getLine(int $currentPosition): int
+    {
+        $brick = 0;
+        for($i = $currentPosition; $i < count($this->parcours) - 1;$i++)
+        {
+            if (!isset($this->parcours[$i]) || $this->parcours[$i] === '#') {
+                return $brick;
+            }
+            $brick += 1;
+        }
+        return $brick;
     }
 }
