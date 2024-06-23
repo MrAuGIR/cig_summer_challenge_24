@@ -1,5 +1,5 @@
 <?php
-// Last compile time: 20/06/24 23:18 
+// Last compile time: 23/06/24 19:16 
  
 
 
@@ -8,9 +8,9 @@
 
 class Course
 {
-    private $parcours;
+    public $parcours;
 
-    private $players;
+    public $players;
 
     public function __construct(string $parcours)
     {
@@ -25,6 +25,7 @@ class Course
     public function addPlayer(int $idx, Player $player): self 
     {
         $this->players[$idx] = $player;
+        $this->players[$idx]->int = $idx;
         return $this;
     }
 
@@ -33,49 +34,112 @@ class Course
         return $this->players[$idx];
     }
 
-    public function getAction(Player $player): string
-    {
-        $position = $player->getPosition();
-
-        if (isset($this->parcours[$position + 1])) {
-            $lines = $this->getLine($position);
-
-            // c'est dégueulasse !
-            if ($lines <= 1) {
-                return "UP";
-            } elseif ($lines <= 3) {
-                return "DOWN";
-            } else {
-                return "RIGHT";
-            }
-        }
-        return "LEFT";
-    }
-
+   
     public function init():void
     {
         $this->parcours = [];
         $this->players = [];
     }
+} 
 
-    private function getLine(int $currentPosition): int
+
+
+
+
+
+class CourseCollection
+{
+    /**
+     *
+     * @var Course[] $courses
+     */
+    private $courses = [];
+
+    private $memo_action = [];
+
+    public function add(int $index, Course $course):self 
+    {
+        $this->courses[$index] = $course;
+        return $this;
+    }
+
+    public function getCourse(int $index): ?Course
+    {
+        if (isset($this->courses[$index])) {
+            return $this->courses[$index];
+        }
+        return null;
+    }
+
+
+    public function getAction(int $playerIdx):string
+    {
+        $actions = [];
+
+        foreach ($this->courses as $key => $course) {
+
+            $currentPlayer = $course->getPlayer($playerIdx);
+
+            if ($currentPlayer->getEtourdissement() > 0) {
+                Logger::log($currentPlayer);
+                continue;
+            }
+
+            $position = $currentPlayer->getPosition();
+            $parcours = $course->parcours;
+
+            if (isset($parcours[$position + 1])) {
+                $lines = $this->getLine($position,$parcours);
+    
+                // c'est dégueulasse !
+                if ($lines <= 1) {
+                    $actions[] = "UP";
+                } elseif ($lines <= 3) {
+                    $actions[] = "DOWN";
+                } else {
+                    $actions[] = "RIGHT";
+                }
+            }
+        }
+
+        return $this->chooseAction($actions);
+    }
+
+
+    private function getLine(int $currentPosition, array $parcours): int
     {
         $brick = 0;
-        for($i = $currentPosition; $i < count($this->parcours) - 1;$i++)
+        for($i = $currentPosition; $i < count($parcours) - 1;$i++)
         {
-            if (!isset($this->parcours[$i]) || $this->parcours[$i] === '#') {
+            if (!isset($parcours[$i]) || $parcours[$i] === '#') {
                 return $brick;
             }
             $brick += 1;
         }
         return $brick;
     }
+
+    private function chooseAction(array $actions): string 
+    {
+        $action_counts = array_count_values($actions);
+
+        if (count($action_counts) === 1) {
+            return array_key_first($action_counts);
+        }
+
+        $most_common_action = array_search(max($action_counts), $action_counts);
+        return $most_common_action;
+    }
+
+
 }
 
 
 
 class Player 
 {
+    private $id;
+
     private $position = 0;
 
     private $etourdissement = 0;
@@ -124,6 +188,7 @@ class Logger
 
 
 
+
 /**
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
@@ -131,6 +196,9 @@ class Logger
 
  fscanf(STDIN, "%d", $playerIdx);
  fscanf(STDIN, "%d", $nbGames);
+
+ // collection
+ $collection = new CourseCollection();
  
  // game loop
  while (TRUE)
@@ -148,16 +216,14 @@ class Logger
          $course->addPlayer(0,(new Player())->setPosition($reg0)->setEtourdissement($reg3));
          $course->addPlayer(1,(new Player())->setPosition($reg1)->setEtourdissement($reg4));
          $course->addPlayer(2,(new Player())->setPosition($reg2)->setEtourdissement($reg5));
+
+         $collection->add($i,$course);
      }
  
      // Write an action using echo(). DON'T FORGET THE TRAILING \n
      // To debug: error_log(var_export($var, true)); (equivalent to var_dump)
-    $currentPlayer = $course->getPlayer($playerIdx);
-
-    Logger::log($currentPlayer);
-
-    $action = $course->getAction($currentPlayer);
     
-
+    $action = $collection->getAction($playerIdx);
+    
      echo("$action\n");
  }

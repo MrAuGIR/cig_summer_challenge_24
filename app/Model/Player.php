@@ -4,6 +4,8 @@ namespace App\Model;
 
 class Player 
 {
+    private $id;
+
     private $position = 0;
 
     private $etourdissement = 0;

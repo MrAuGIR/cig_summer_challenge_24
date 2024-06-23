@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Model\Course;
+use App\Model\CourseCollection;
 use App\Model\Player;
 use App\Tool\Logger;
 
@@ -13,6 +14,9 @@ use App\Tool\Logger;
 
  fscanf(STDIN, "%d", $playerIdx);
  fscanf(STDIN, "%d", $nbGames);
+
+ // collection
+ $collection = new CourseCollection();
  
  // game loop
  while (TRUE)
@@ -30,16 +34,14 @@ use App\Tool\Logger;
          $course->addPlayer(0,(new Player())->setPosition($reg0)->setEtourdissement($reg3));
          $course->addPlayer(1,(new Player())->setPosition($reg1)->setEtourdissement($reg4));
          $course->addPlayer(2,(new Player())->setPosition($reg2)->setEtourdissement($reg5));
+
+         $collection->add($i,$course);
      }
  
      // Write an action using echo(). DON'T FORGET THE TRAILING \n
      // To debug: error_log(var_export($var, true)); (equivalent to var_dump)
-    $currentPlayer = $course->getPlayer($playerIdx);
-
-    Logger::log($currentPlayer);
-
-    $action = $course->getAction($currentPlayer);
     
-
+    $action = $collection->getAction($playerIdx);
+    
      echo("$action\n");
  }
